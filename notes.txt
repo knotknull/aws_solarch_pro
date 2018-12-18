@@ -152,3 +152,102 @@ DNS Based Load Balancing w/ Multiple ELB across Regions
 ##########################################################################
 ## VPC and Direct Connect
 ##########################################################################
+
+Virutal Private Cloud Overview:
+  - Logically isolated network in AWS cloud (master subnet)
+  - Control of network architecture (create smaller subnets)
+  - Enhanced security
+      - via security groups
+      - security groups applied to resources (EC2, ELBs)
+      - Network Access Control Lists (NACL)
+            - filter traffic at subnet level
+  - Internetwork with other organizations (via VPC Peering)
+      - connect two VPCs together
+  - Elastic IP address (Public IP addr)
+  - Enable hybrid cloud (site to site VPN)
+  - Single tenant dedicated server hardware
+  - VPC Cost = $0 / VPN = $0.05/hr
+
+
+##  VPC Peering
+
++---------------------------------------------------------------------------+
+|                            +-------------------+                          |
+|                            |                   |                          |
+|                +---------> |                   | <---------+              |
+|                |           |       VPC 2       |           |              |
+|                |           |                   |           |              |
+|                |           +-------------------+           |              |
+|                v                                           v              |
+|       +--------+-------------+                +------------+-------+      |
+|       |                      |                |                    |      |
+|       |         VPC 1        |  x x x x x x   |        VPC 3       |      |
+|       |                      |                |                    |      |
+|       +----------------------+                +--------------------+      |
++---------------------------------------------------------------------------+
+                                                              REGION
+
+- Single Region Inter-VPC Routing
+- Same or different AWS Accounts
+- NO Transitive peering
+- NO overlapping network addresses (different CIDR blocks)
+- Default:  50 VPC peers per VPC / can request raise to 125
+
+Private DNS entries cannot be resolved between VPC peers
+
+Can update inbound / outbound rules for your VPC security groups to reference
+security groups in the peered VPC.  (Can access resources in other VPC sec grp)
+
+
+##  AWS VPC Access / VPN TypesVPC Types
+
+
+AWS VPC ACCESS
+
+                   VPN                                     Gateways
++-----------------+   +----------------+     +--------------------------------+
+|                 |   |                |     |                                |
+|  Hardware-based |   |     Direct     |     |            Internet            |
+|       VPN       |   |     Connect    |     |            Gateway             |
++-----------------+   +----------------+     +--------------------------------+
+
++-----------------+   +----------------+     +--------------+   +-------------+
+|                 |   |                |     |              |   |             |
+|       VPN       |   |     Software   |     |   Virtual    |   |   Customer  |
+|     CloudHub    |   |       VPN      |     |   Private    |   |   Gateway   |
+|                 |   |                |     |   Gateway    |   |             |
++-----------------+   +----------------+     +--------------+   +-------------+
+
+
+
+VPN Types
+
+
+                                                                       +--------+
+                                                                       |        |
+                                                                       | Branch |
+                                  Private Connection                   | Office |
+        +------------------------------------------------------------- +        | +-------+
+        |                                                              |        | |  CSP  |
+        |                                                              |        | |       |
+        v                                                              +--------+ +-------+
++------------+
+|            |           +---------------------------------+
+|            +-----------+                                 |         +--------+
+|  Corporate +-----------+            INTERNET             |   Site  |        |
+|  Data      |           |                                 +---------+        |
+|  Center    |           +-----------------+---------------+    to   |        |
+|            |                             |                   Site  | Branch |
+|            |                             |                         | Office |
+|            |                             |                         |        |  +----------------+
++------------+                             |                         |        |  | Cloud          |
+                                      +----+-----+                   |        |  | Service        |
+                                      |          |                   |        |  | Provider (CSP) |
+                                      |  Remote  |                   +--------+  +----------------+
+                                      |  Access  |
+                                      |          |
+                                      +----------+
+
+- Remote Access
+- Site to Site
+- Private Line
