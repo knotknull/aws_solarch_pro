@@ -1,3 +1,154 @@
 AWS Solution Architect Pro
 
 
+AWS Tracks
+
+Pro     AWS Cert Solutions Arch - Pro          AWS Certified DevOps Engineer - Pro
+Assoc   AWS Cert Solutions Arch - Assoc        Dev - Assoc       SysOps Admin - Assoc
+            Solution Architect                 Developer         SysOps Administrator
+
+
+https://www.pluralsight.com/courses/aws-system-admin-fundamentals
+https://www.pluralsight.com/courses/aws-certified-sysops-admin-associate
+
+
+
+170 min exam
+$300 Exam Fee
+$40 Practice exam
+
+Exam Guide:
+
+https://aws.amazon.com/certification/certified-solutions-architect-professional
+
+
+##########################################################################
+## Elastic Load Balancer (ELB)
+##########################################################################
+
+Characteristics:
+  - Region wide load balancer
+      - Can use across AZs in same region
+  - Can be used internally or externally (private / public IP)
+  - SSL Termination and processing (Layer 7 functionality)
+      - ELB handles SSL processing
+  - Cookie-based sticky session
+      - User session routed to specific instance
+  - Integrates w/ Auto Scaling
+  - ELB EC2 health checks / Amazon CloudWatch  (advanced metric load balancing)
+  - Integrates w/ Route 53  (Cloud based DNS load balancing )
+
+Supported Ports:
+    - 25 (SMTP)
+    - 80 / 443 (HTTP / HTTPS)
+    - 1024 - 65535
+
+- Does not support EIP / public IP / only DNS
+
+- Supports domain Zone Apex (can do pluralsight.com [without www.])
+
+- Supports IPv4 and IPv6 (VPC does not support IPv6 yet)
+
+- Integrates with CloudTrail for log security
+
+- Multiple SSL certificates require multiple ELBs
+    - Wildcard certificates are Supported (*.pluralsight.com)
+
+
+
+    AWS Cloud
+ +---------------------------------------------------------------------------+
+ |                                                                           |
+ |      +--------------------------------------------------------------+     |
+ |      |                                                              |     |
+ |      |                   +---------------------------------+        |     |
+ |      |                   |               +---+             |        |     |
+ |      |                   |    +--------> |   |             |        |     |
+ |      |     +---+         |    |          +---+             |        |     |
+ |      |     |   |         |    |                            |        |     |
+ |      |     | E |         |    |                            |        |     |
+ |      |     | L +--------------------->   +---+             |        |     |
+ |      |     | B |         |    |          |   |             |        |     |
+ |      |     |   |         |    |          +---+             |        |     |
+ |      |     +---+         |    |                            |        |     |
+ |      |   (HealthCheck)   |    |                            |        |     |
+ |      |                   |    |          +---+             |        |     |
+ |      |                   |    +--------> |   |             |        |     |
+ |      |                   |               +---+             |        |     |
+ |      |                   +---------------------------------+        |     |
+ |      |                                     Availability Zone        |     |
+ |      |                                                              |     |
+ |      +--------------------------------------------------------------+     |
+ |                                                             REGION        |
+ +---------------------------------------------------------------------------+
+ELB across EC2 instances (single AZ)
+
+
+
+ AWS Cloud
++---------------------------------------------------------------------------+
+|                                                                           |
+|      +--------------------------------------------------------------+     |
+|      |                                                              |     |
+|      |                         +---------------------------+        |     |
+|      |                         |                           |        |     |
+|      |                         | +---+                     |        |     |
+|      |                         | |   |  +----+             |        |     |
+|      |     +---+        +----> | +---+  |    |   +---+     |        |     |
+|      |     |   |        |      |        +----+   |   |     |        |     |
+|      |     | E |        |      |                 +---+     |        |     |
+|      |     | L +--------+      +---------------------------+        |     |
+|      |     | B |        |                              AZ 1         |     |
+|      |     |   |        |      +---------------------------+        |     |
+|      |     +---+        |      |                           |        |     |
+|      |                  |      |  +---+                    |        |     |
+|      |                  +----> |  |   |   +----+           |        |     |
+|      |                         |  +---+   |    |  +---+    |        |     |
+|      |                         |          +----+  |   |    |        |     |
+|      |                         |                  +---+    |        |     |
+|      |                         +---------------------------+        |     |
+|      |                                                  AZ 2        |     |
+|      +--------------------------------------------------------------+     |
+|                                                             REGION        |
++---------------------------------------------------------------------------+
+ELB across Availability Zones
+
+
+AWS Cloud
++---------------------------------------------------------------------------+
+|                                                                           |
+|      +--------------------------------------------------------------+     |
+|      |                         +-------------------------+          |     |
+|      |                         |  |---| |---|  |---|     |          |     |
+|      |     +---+         +---> |  |---| |---|  |---|     |          |     |
+|      |     | E |         |     +-------------------------+ AZ 1     |     |
+|      |     | L |         |                                          |     |
+|  D   |     | B +---------+     +-------------------------+          |     |
+|  N   |     +---+         |     |  |---| |---|  |---|     |          |     |
+|  S   |                   +---> |  |---| |---|  |---|     |          |     |
+|      |                         +-------------------------+ AZ 2     |     |
+|  B   +--------------------------------------------------------------+     |
+|  A                                                          Region 1      |
+|  S    +--------------------------------------------------------------+     |
+|  E   |                         +--------------------------+         |     |
+|  D   |                         |  |---| |---|  |---|      |         |     |
+|      |     +---+         +---> |  |---| |---|  |---|      |         |     |
+|  L   |     | E |         |     +--------------------------+ AZ 3    |     |
+|  O   |     | L +---------+                                          |     |
+|  A   |     | B |         |     +--------------------------+         |     |
+|  D   |     +---+         |     |  |---| |---|  |---|      |         |     |
+|  B   |                   +---> |  |---| |---|  |---|      |         |     |
+|  A   |                         +--------------------------+ AZ 4    |     |
+|  L   +--------------------------------------------------------------+     |
+|                                                              Region 2     |
++---------------------------------------------------------------------------+
+
+DNS Based Load Balancing w/ Multiple ELB across Regions
+
+
+
+
+
+##########################################################################
+## VPC and Direct Connect
+##########################################################################
