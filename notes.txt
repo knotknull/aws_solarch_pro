@@ -251,3 +251,184 @@ VPN Types
 - Remote Access
 - Site to Site
 - Private Line
+
+
+
+AWS VPC Access
+
+
+                                                                       +--------+
+                                                                       |        |
+                                                                       |        |
+                                  Private Connection                   |  AWS   |
+        +------------------------------------------------------------- +        |
+        |                          (Direct Connect)                    |        |
+        |                                                              +--------+
+        v
++------------+                                                         (Internet
+|            |           +---------------------------------+ Site to    Gateway)
+|            +-----------+                                 |   Site    +--------+
+|  Corporate +-----------+            INTERNET             +-----------+        |
+|  Data      |           |         (VPN Connection)        +- ---------+        |
+|  Center    | Customer  +-----------------+---------------+ Hardware  |   AWS  |
+|            | Gateway                     |                  based    |        |
+|            |                             |                  VPN*     |        |
+|            |                             |                           +--------+
++------------+                             |                           (Virtual
+                                      +----+-----+                      Private
+                                      |          |                      Gateway)
+                                      |  Remote  |
+                                      |  Access  |
+                                      |          |
+                                      +----------+
+
+*NOTE: For hardware based VPN on AWS side will be setup with port redundancy.
+       Direct Connect by default does NOT have port redundancy.
+
+
+
+
+##  AWS Direct Connect
+ - Predictable bandwidth
+ - Predictable performance / consistent network experience
+ - 1 Gbps or 10Gbps
+ - Less than 1Gbps through AWS Partner Network (APN)
+ - Support for VLAN Trunking (802.1Q)
+ - Direct Connect can be partitioned into multiple virtual interfaces (VIFS)
+
+
+
+
+
+[] Private Connection / Direct Connect
+                                                                 +--------+
++------------+                                                   |        |
+| Corporate  |                   Private Connection              |  AWS   |
+| Data       +---------------------------------------------------+        |
+| Center     |                    (Direct Connect)               |        |
++------------+                                                   +--------+
+
+
+
+[] Co-location / Direct Connect
+                                    +----------+                 +--------+
++------------+                      |          |                 |        |
+| Corporate  | Private Connection   | Co-      | Direct Connect  |  AWS   |
+| Data       +----------------------+ Location +-----------------+        |
+| Center     |                      |          |                 |        |
++------------+                      +----------+                 +--------+
+
+
+
+Direct Connect Deep Dive:
+https://youtu.be/SMvom9QjkPk
+https://aws.amazon.com/directconnect
+
+
+[] Virtual Interfaces / Direct Connect
+
+Can partition Direct Connect across VLANs
+
+
++---------------------------------------+               +-----------------------------------------+
+|                                       |               | AWS                                     |
+|                                       |               |    +-------------------------------+    |
+|                                       |           +------> |                               |    |
+|          +---------------+            |           |   |    |   S3       EC2      DynamoDB  |    |
+| +------+ |               |  +-------+ |  Public   |   |    |           Public              |    |
+| |      | |  +---------+  |  |       | |  VIF      |   |    |                               |    |
+| |      | |  |  VLAN 1 |  |  |       +------------>+   |    +-------------------------------+    |
+| | Cust | |  +---------+  |  | Direct| |               |                                         |
+| |Router+-+               +--+       | |               |                                         |
+| |      | |  +---------+  |  |Connect| |               |    +-------------------------------+    |
+| |      | |  |  VLAN 2 |  |  |       +-------------+   |    |                               |    |
+| |      | |  +---------+  |  |       | |  Private  |   |    |  VPC            EC2           |    |
+| +------+ |               |  +-------+ |  VIF      |   |    |               Private         |    |
+|          +---------------+            |           |------> |                               |    |
+|                                       |               |    +-------------------------------+    |
+|                                       |               |                                         |
++---------------------------------------+               +-----------------------------------------+
+
+
+
+
+##  AWS VPN CloudHub
++-------------+
+|             |                                                      +------------+
+|  Corporate  |                                                      |            |
+|  Data       |                                                      |            |
+|  Center     +------------------------------------------------------+    VPC     |
+|             |                                                      |            |
+|             |                                +-------------------> |            |
++-------------+   (Hardware                    |                     +------------+
+                   Based VPN)                  |
+                                               |
+                   +------------+--------------+
+                   |            |              |
+             +-----+--+     +---+----+     +---+----+
+             |        |     |        |     |        |
+             | Branch |     | Branch |     | Branch |
+             | Office |     | Office |     | Office |
+             |        |     |        |     |        |
+             +--------+     +--------+     +--------+
+
+
+
+
+
+##########################################################################
+## NAT Instances and NAT Gateways
+##########################################################################
+
+
+NAT Gateway:   AWS Service / Amazon handles all details (High Availability / resiliancy)
+NAT Instance:  Developer responsible for NAT functionality
+
+Removing VPC NAT Bottlenecks:
+  - Increase instance size
+  - Choose instance that supports enhanced netowrking
+  - Add NATs / subnets and migrate workloads (1 subnet - 1 NAT)
+
+  HA for NAT is possible
+
+  Subnet failover to another NAT is supported:
+  https://aws.amazon.com/articles/2781451301784570
+  https://aws.amazon.com/articles/high-availability-for-amazon-vpc-nat-instances-an-example/
+
+
+## NAT Instances vs NAT Gateways
+
+  NAT instances                           NAT Gateways
+  ==============                          ==============
+  - Use a script to manage failover       - Highly Available. NAT gateways in each
+    between instances                       each AZ are implemented with redundancy
+
+  - Depends on the bandwidth of the       - Supports bursts of up to 10Gbps
+    instance type
+
+  - Managed by you                        - Managed by AWS
+
+  - A generic Amazon Linux AMI that's     - Software is optimized for handling NAT Traffic
+    configured to perform NAT
+
+  - Manual port forwarding                - Port forwarding is not supported
+
+  - Use as a bastion server               - Bastion servers not supported
+
+  - View CloudWatch alarms                - Traffic metrics not supported
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+.
