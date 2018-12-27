@@ -420,12 +420,85 @@ Removing VPC NAT Bottlenecks:
 
 
 
+## Create NAT Instance
+
+1. Create VPC:  name: XYZ_vpc  / CIDR: 192.168.0.0/16  tenancy: default
+
+2a. Create Subnet:  name: DMZ_subnet
+                    VPC: XYZ_vpc
+                    AZ: us-east-1b
+                    CIDR: 192.168.1.0/24
+
+2b. Create Subnet:  name: DB_subnet
+                    VPC: XYZ_vpc
+                    AZ: us-east-1c
+                    CIDR: 192.168.2.0/24
+
+3. Create Internet GW:  name: INET_gw
+                        attach to VPC: XYZ_vpc
+
+4. Create Route Table:  name: DMZ_rtbl
+                        VPC: XYZ_vpc
+
+5. Add Route:  destination: 0.0.0.0
+               target: INET_gw
+
+6. Add Subnet Assoc:  Edit
+                       select DMZ_subnet
+
+7. Create EC2 instance:  name: webserver
+                         Network: XYZ_vpc
+                         Subnet:  DMZ_subnet
+                         Auto assign Public IP:  ENABLE
+                         sec group:  create new
+                              name: web_secgrp
+                              TYPE: RDP / HTTP / HTTPS
+
+8. Create EC2 instance:  name: dbserver
+                         Network: XYZ_vpc
+                         Subnet:  DB_subnet
+                         Auto assign Public IP:  Use subnet setting
+                         sec group:  create new
+                              name: db_secgrp
+                              TYPE: RDP
+
+9. Create EC2 instance: > Community AMI >  "NAT > " amzn-ami-vpc-nat-hvm-*
+                         Network: XYZ_vpc
+                         Subnet:  DMZ_subnet
+                         Auto assign Public IP:  ENABLE
+                         name: NAT
+                         sec group:  create new
+                              name: nat_secgrp
+                              TYPE: SSH / HTTP / HTTPS
+
+10. Create route table: VPC > Route Tables > Create Route Table
+                         Name: NAT_rtbl
+                         VPC:  XYZ_vpc
+                         routes > edit > add:
+                            destination: 0.0.0.0
+                            target:   NAT (instance)
+
+NOTE:  When configuring a NAT, the Source / Dest Check must be diabled because
+       of traffic coming from "behind" the NAT.
+          > EC2 > Intstances > NAT > (right click) > Networking >
+            Source / Dest Check > Disable
 
 
 
+## Create NAT Gateway
+
+1. Create NAT Gateway: VPC > NAT Gateways > Create NAT Gateway
+                         subnet:  DMZ_subnet
+                         Elastic IP Allocation:   [Create New IP]
+                         [ Create NAT Gateway ]
 
 
-
+2. Update Route Table: VPC > Route Tables > NAT
+                         routes > edit > add:
+                            destination: 0.0.0.0/0
+                            target:   NAT (NAT gw instance)
+                          subnet association > DB_subnet
+                         [ Save ]
 
 
 
