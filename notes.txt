@@ -502,6 +502,184 @@ NOTE:  When configuring a NAT, the Source / Dest Check must be diabled because
 
 
 
+###############################################################################
+## Networking Services:  Domain Name System / Route 53
+###############################################################################
+
+
+DNS Default port:  TCP 53 / UDP 53  ==> (hence) Route 53
+
+Route 53: Worldwide distributed DNS  (SLA uptime 100%)
+
+Database of name to IP mappings
+
+Route 53 API
+
+Server health checks
+
+
+- Public Hosted Zone
+
+- Private Hosted Zone for Amazon VPC (inter VPC name resolution for EC2 instances)
+
+- Can extend on-premises DNS to Amazon VPC
+
+- Cannot extend Route 53 to on-premises
+
+- Cannot automatically register EC2 instances with private hosted zones
+
+                             +
+                             |
+                             |
++---------------------+      |               +------------+       +-----------------+
+|                     |      |               |            |       |                 |
+|      On Premise     +--------------------> |    AWS     +-----> |      AWS        |
+|         DNS         |      |               |    Route   |       |      VPC        |
+|                     |      |               |    53      | <-----+                 |
+|                     |      |  +---XXXXX--+ |            |       |                 |
++---------------------+      |               +------------+       +-----------------+
+                             |
+                             |
+                             +
+                         Internet
+
+
+Route 53 Private Hosted Zone
+
+Extend On-premises DNS to EC2 instances
+
+
+
+## Add private DNS entry to Route 53 Private Hosted Zone
+
+AWS > Services > Route 53 > DNS Management
+
+1. Create Hosted Zone (Create Hosted Zone > Create Hosted Zone > Create Hosted Zone > )
+          Domain Name:  xyz.aws
+          Comment:
+          Type: Private Hosted Zone for Amazon VPC
+          VPC ID: XYZ_vpc
+          [Create]
+
+ NOTE:  2 records types created, NS (Name server), SOA
+
+2. Create Record Set to register EC2 instance to private Hosted Zone:
+          Name:  dc01.xyz.aws
+          Type:  A - IPv4 addresses
+          Alias: No
+          TTL (Seconds): 300
+          Value: 192.168.0.111
+          Routing Policy: Simple
+
+          Name:  web01.xyz.aws
+          Type:  A - IPv4 addresses
+          Alias: No
+          TTL (Seconds): 300
+          Value: 192.168.0.222
+          Routing Policy: Simple
+
+3. Update VPC parameters:   AWS > Services > VPC
+
+          select XYZ_vpc > Actions > Edit DNS Reslolution > [YES]
+          select XYZ_vpc > Actions > Edit DNS Hostnames   > [YES]
+
+
+## Extend On-premises BIND DNS server to EC2 instances
+
+[DNS Server]  -- VPN -- [AWS] -- [EC2]
+
+NOTE:  Make sure security group for instance has DNS port enabled
+AWS > Services > VPC > Secuirty Groups > dc_secgrp > inbound rules > Edit
+  [Add Another Rule]
+  Type: DNS TCP (53)  (and DNS UDP (53))  or ALL Traffic
+  Protocol: ALL
+  Source: 0.0.0.0/0
+  [SAVE]
+
+NOTE: Windows DNS utilizes additional ports outside of TCP/UDP 53 hence ALL Traffic
+
+1. Setup DHCP options for VPC
+
+AWS > Services > VPC >  DHCP Option Sets > [Create DHCP options set]
+          Name tag: xyz.com
+          Domain Name : xyz.com
+          Domain Name Servers : 192.168.0.111
+          NTP Servers :
+          NetBIOS name servers:
+          NetBIOS node type :
+
+2. Associate DHCP Option Set to VPC:
+AWS > Services > VPC >
+        Select VPC: XYZ_vpc
+        [right click] > Edit DHCP Option Set
+                     select newly create DHCP Option Set [xyz.com]
+                     [Save]
+
+NOTE: VPC can only be associated with 1 DHCP Option Set at a time
+
+
+
+###############################################################################
+## High Performance Computing
+###############################################################################
+
+ - Batch processing of compute intensive workloads
+ - Requires high perfromance CPU, network, and storage
+ - Jumbo Frames are typically required (9000 bytes of data vs. 1500)
+    - typically need access to shared file system
+    - use alot of disk I/O
+    - Supported on AWS thru enhanced networking
+    - Enhance networking is enabled thru single route I/O virtualization (SR-IOV)
+      on supported instances
+    - Enhance networking only supported on Hardware Virtualization instances (HVM).
+      NOT supported on Paravirtualized (PV)
+
+Jumbo Frames:
+
+Enabling Enhanced Networking on Linux Instances in a VPC:
+http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/enhanced-networking.html
+
+Enabling Enhanced Networking on Windows Instances in a VPC:
+http://docs.aws.amazon.com/AWSEC2/latest/WindowsGuide/enhanced-networking.html
+
+
+Placement groups:  Logical grouping of instances in a single availability zone
+
+Allows for low latency and high performance between instances by placing them
+close together to each other.
+
+ - Can't span multiple availability zones
+ - Name must be unique across AWS account
+ - Recommended for application that benefit from low latency, high bandwidth or both
+ - Only supported instances that support enhanced networking that can be launched
+   into a placement group (C3, C4, D2, I2, M4, E3)
+ - Existing instances cannot be moved into a placement group
+ - Placement groups cannot be merged
+ - Can span peered VPCs but you will not get full bi-section bandwidth
+   between instances
+ - Reserved instances are supported on an instance level but you cannot explicitly
+   reserver capacity for a placement group.
+
+
+Placement Group Types:
+
+  Cluster: clusters instances into a low-latency group in a single Availability Zone
+
+  Spread:  spreads instances across underlying hardware
+
+  Partition:  spreads instances across logical partitions, ensuring that
+              instances in one partition do not share underlying hardware with
+              instances in other partitions
+
+
+
+AWS > EC2 > Placement Groups
+[Create Placement Group]
+    Name: XYZ_pgrp
+
+Placement Groups and supported instances
+http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/placement-groups.html
+
 
 
 .
