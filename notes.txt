@@ -682,4 +682,169 @@ http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/placement-groups.html
 
 
 
+
+##########################################################################
+## AWS Data Storage Services
+##########################################################################
+
+## Storage and Archive
+
+  - S3
+  - EBS
+  - Glacier
+  - AWS Storage Gateway
+
+
+## S3 Storage Classes:
+    - S3 Standard
+    - S3 Standard IA (Infrequent Access)
+    - S3 RRS (Reduced Redundancy)
+
+                        Standard      Standard-IA        RRS        Glacier
+Durability              99.999999999   99.999999999      99.99      99.999999999
+Availability SLA        99.9           99                99.9       N/A
+Designed for Avail      99.99          99.9              99.99      N/A
+Lifecycle               Yes            Yes               Yes        Yes
+Retrieval fee           N/A            Per GB            N/A        Per GB
+Minimum object size     N/A            128 KB            N/A        N/A
+Minimum storage duration  N/A          30 days           N/A        90 days
+Maximum object size     5 TB           5 TB              5 TB       N/A
+Maximum archive size    N/A            N/A               N/A        4 TB
+Facility loss tolerance  2              2                1           1
+
+## S3 features:
+
+  - Versioning  :  (Not on be default, once turned on you can't turn it off, only suspend)
+  - Cross-region: replication (CRR)
+  - Data lifecycle management  (move data between tiers i.e. RRS / Glacier)
+  - MFA delete: (can't delete unless you give 2-factor code to delete)
+  - Permissions: granular permissions to users and buckets
+  - Time-limited access to objects.
+
+
+
+## Optimizing for PUTs
+
+  - Parallelization divides files into smaller parts and uploads them simultaneously
+      Any part that fails is restarted without affecting rest of the file
+
+  - Increase resiliency to network errors
+
+  - Move the bottleneck to the network
+  - file Chunk-size  25 - 50MB on high bandwidth networks
+  - file Chunk-size  10 MB on low bandwidth netorks  - 50MB on high bandwidth networks
+
+## Splitting Files:d
+  - Windows:  http://www.hjsplit.org
+  - Linux:    http://www.manpagez.com/man/1/split
+  - Bucket Explorer:    http://www.bucketexplorer.com
+  - CloudBerry S3 Explorer:   http://www.cloudberrylab.com/free-amazon-s3-explorer-cloudfront-IAM.aspx
+  - S3 Explorer:   http://www.s3browser.com
+
+
+
+## Optimizing for GETs
+
+  - Use Cloudfront:
+      - Multiple endpoints globally
+      - Low latency endpoints
+      - High transfer rates
+      - Caches objects from S3
+      - Reduces number of GETs
+
+  - Two options of Cloudfront:
+      - Real-Time Messaging Protocol (RTMP) distribution (Streaming files, media files)
+      - Web distribution (static or dynamic content)
+
+
+## Parallelizing for GETs
+  - Use range-based GETs for multithreaded performance
+  - Using the Range HTTP header in a GET request allows you to retrieve a
+    specific range of bytes for an object stored in S3
+  - Enables you to send multiple GETs at a time
+  - Compensates for unreliable networks
+  - Maxiximize bandwidth throughput
+
+
+NOTE: Amazon S3 stores data lexicographically (Alphabetical Order)
+    - Randomizing the name increases performance (Add a HEX hash string as a prefix)
+    - Reverse the key name string
+    - Only applies if you are processing 100 or more requests per second
+
+ex.
+
+NOTE:  will locate files close to each other
+yourbucket/2016-18-03/march/photo1.jpg
+yourbucket/2016-18-03/march/photo2.jpg
+yourbucket/2016-18-03/march/photo3.jpg
+
+
+## Added HEX Hash, spreads writes
+yourbucket/bc66-2016-18-03/march/photo1.jpg
+yourbucket/9957-2016-18-03/march/photo2.jpg
+yourbucket/1045-2016-18-03/march/photo3.jpg
+
+yourbucket/621787/march/photo1.jpg
+yourbucket/621788/march/photo2.jpg
+yourbucket/621789/march/photo3.jpg
+yourbucket/621790/march/photo4.jpg
+yourbucket/621791/march/photo5.jpg
+yourbucket/621792/march/photo6.jpg
+
+
+## Reverse Key Name String
+yourbucket/787621/march/photo1.jpg
+yourbucket/788621/march/photo2.jpg
+yourbucket/789621/march/photo3.jpg
+yourbucket/790621/march/photo4.jpg
+yourbucket/791621/march/photo5.jpg
+yourbucket/792621/march/photo6.jpg
+
+
+
+## Securing Amazon S3
+
+  - Bucket Policies: who can download, upload, delete, etc
+  - MFA Delete
+  - Backing up your bucket to another bucket in a different account
+
+
+## Amazon EBS
+
+  - Does not need to be attached to an instance
+  - Cannot be attached to more than one instance at the same time
+  - Can be transferred between Availability Zones
+  - EBS volume data is replicated across multiple servers in an Availability Zone
+  - Encryption of EBS data volumes, boot volumes, snapshots
+  - Designed for an annual failure rate of 0.1% - 0.2% and SLA of 99.95%
+
+
+## Amazon Glacier
+
+  - up to 1000 vaults per account
+  - individual archives can be from 1 byte to 40 TB
+  - Integrates with Amazon S3 lifecycle policies
+
+## Amazon Storage Gateway
+
+  - Gateway-Cached Volumes:  retain local copy of most frequent data on premises,
+                everything else moved to S3.
+  - Gateway-Stored Volumes:  Low latency frequent access to data stored locally
+                on storage gateway. Point in time snapshots are backed up to S3.
+  - Gateway-Virtual Tape Library: Virtual tape library backed by S3 or Virtual
+                tape shelf (backed by Glacier). Storage gateway exposes iSCSI
+                interface to backup software.  For frequent access, use Virtual
+                Tape Library.  Move Virtual Tape Library (on-premise) to
+                Virtual Tape Shelf (off-premise).
+
+AWS Storage Options:
+https://media.amazonwebservices.com/AWS_Storage_Options.pdf (permission denied)                  
+
+https://d1.awsstatic.com/whitepapers/Storage/aws-storage-options.pdf
+
+https://d1.awsstatic.com/whitepapers/Storage/AWS%20Storage%20Services%20Whitepaper-v9.pdf
+
+
+
+
 .
