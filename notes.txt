@@ -838,12 +838,198 @@ yourbucket/792621/march/photo6.jpg
                 Virtual Tape Shelf (off-premise).
 
 AWS Storage Options:
-https://media.amazonwebservices.com/AWS_Storage_Options.pdf (permission denied)                  
+https://media.amazonwebservices.com/AWS_Storage_Options.pdf (permission denied)
 
 https://d1.awsstatic.com/whitepapers/Storage/aws-storage-options.pdf
 
 https://d1.awsstatic.com/whitepapers/Storage/AWS%20Storage%20Services%20Whitepaper-v9.pdf
 
+
+
+
+##########################################################################
+## AWS Database Services (RDS)
+##########################################################################
+
+## RDS Characteristics:
+########################
+
+  - Database engine managed by AWS
+  - MySQL, Oracle,  Microsoft SQL, PostgreSQL, MariaDB, Amazon Aurora
+  - Multi-AZ Deployment options
+  - Ideal for existing applications that rely on traditional
+    relational database engines
+  - Optimal for new applications with structured data that requires more
+    sophisticated querying and joining capabilities
+  - Amazon RDS for SQL Server supports Windows authentication
+      - Using credentials stored in AWS directory Service for Microsoft Active
+        Directory (Enterprise Edition)
+
+
+## Non-ideal RDS Scenarios:
+###########################
+
+ Index & query focus data (DynamoDB)
+ Numerous BLOBs (S3)
+ Automated Scalability  (DynamoDB)
+ Other database platforms (DB2 installed on EC2)
+ Complete control (OS Level, utilize EC2 instance)
+
+
+## Multi-AZ failover
+###########################
+
+ - Multi-AZ deployment designed for High Availability
+ - Synchronous replica in secondary availability zone (master / slave )
+ - Used for disaster recovery, NOT for scaling
+ - Multi-AZ is different from an RDS read replica
+
+
+## RDS Read Replicas
+#####################
+
++------+            +------+
+|      |            |      |
+|  M   |  +-------+ |  R   |
+|      |            |      |
++------+            +------+
+
+  - Used for scaling out, not for disaster recover
+  - Asynchronous replication / Read-only connections
+
+
+## ACID
+#####################
+
+  - Atomicity, Consistency, Isolation, Durability
+    properties that guarantee that database transactions are processed reliably
+
+
+
+## Dynamo DB
+#####################
+
+  - DynamoDB is fully managed, highly available and scalable NoSQL database
+  - Automatically / Synchronously replicates data across three Availability Zones
+  - SSDs and limiting indexing on attributes provides high throughput and low latency
+  - ElastiCache can be sued in front of DynamoDB in order to offload hight
+    amounts of reads for non-frequently changed data
+
+  Ideal for:
+    - flexible NoSQL db with low read / write latencies
+    - Ability to scale storage and throughput up or down as needed without code
+      changes or downtime.
+
+  Use cases :
+    - IoT
+    - Gaming
+    - Live voting
+    - Mobile Apps
+    - Digital Ad serving
+
+  Non-Ideal for:
+    - Prewritten application tied to a traditional relational db
+    - Joins and/or complex transactions
+    - BLOB data (S3 better)
+    - Large data with low I/O rate
+
+  DynamoDB Integration :
+    - Amazon Elastic MapReduce
+    - Amazon Redshift
+    - Amazon Data Pipeline (automates data into/out of DynamoDB)
+    - Amazon S3
+    - Management Console and APIs
+
+
+  DynamoDB Features :
+    - Stores structured data in tables, indexed by a primary key
+    - Tables are a collection of items and items are made up of attributes (columns)
+    - Primary key can be:
+        - Single attribute hash key
+        - Composite hash-range key
+    - Secondary index
+    - Streams: keep track of item-level changes (or get list of all changes in last 24 hrs ??)
+    - Cross-region Replication: replicate across regions / low latency access in multiple endpoints
+    - Triggers: integrate with Lambda. Item event will cause a trigger
+    - Schema-less:  flexible schema
+
+    Two Ways to Search
+        - Query Operation: finds items in a table using primary key attributes
+        - Scan Operation : reads every item in a table or secondary index.
+          Scan performance costly / query more efficient
+
+
+
+
+##########################################################################
+## AWS Security Strategies:  Directory Service
+##########################################################################
+
+## AWS Directory Service types
+##############################
+  - AD Connector
+  - Simple AD (Samba 4)
+  - Microsoft AD
+
+## AD Connector:
+##############################
+  - Custom federation proxy ( Kerberos / LDAP requests)
+  - Connect existing AD environment (proxy from AWS to AD Directory)
+  - No information cached on AWS
+  - Availability of AD Connector tied to Networking
+  - Requires ports to be opened
+  - Supports MFA
+  Comes in two sizes:
+      - Small (up to 500  users)
+      - Large (up to 5000 users)
+
+  - Manage AWS resources via IAM role-based access to the console
+  - Enforce existing security policies:
+      - Password expiration
+      - Password history
+      - Account lockouts
+
+
+## Simple AD :
+##############################
+  Simple AD: stand alone, managed directory powered by Samba 4 Active Directory
+             compatible server.
+
+  Simple AD Features:
+    - Manage users and group memberships
+    - Create / apply group policies
+    - Domain-join Amazon EC2 instances
+    - Provide Kerberos-based single sign-on
+    - Small (500  users)
+    - Large (5000 users)
+    - No MFA Support
+    - No forest / domain trust relationships
+    - Cannot transfer FSMO roles
+    - Only 2 domain controllers
+    - No LDAP-S
+    - Schema extension not supported
+
+
+## Microsoft AD :
+##############################
+    - Managed Microsoft Active Directory powered by Windows Server 2012 R2
+    - Designed to support up to 50K users. (approx 200K directory objects:
+      users, groups, computers)
+    - Run directory-aware Windows workload
+    - Create trust relationships between Microsoft AD domains in the AWS cloud,
+      and on-premises
+    - Deployed across multiple AZs
+    - AWS automates monitoring / detects and replaces DCs that fail
+    - Data replication and automated daily snapshots are configured for you
+    - No software to install
+    - AWS handles all of the patching and software updates
+
+
+
+
+##########################################################################
+## AWS Security Strategies:  STS and Cross Account Access
+##########################################################################
 
 
 
