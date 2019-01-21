@@ -1027,10 +1027,201 @@ https://d1.awsstatic.com/whitepapers/Storage/AWS%20Storage%20Services%20Whitepap
 
 
 
-##########################################################################
-## AWS Security Strategies:  STS and Cross Account Access
-##########################################################################
+#############################################################################
+## AWS Security Strategies:  Security Token Services and Cross Account Access
+#############################################################################
 
+## Security Token Service (STS):
+#################################
+    - Federated temporary acess to AWS resources
+    - Enterprise identity federation:
+        - SAML 2.0
+        - LDAP, AD FS
+        - Single Sign On (SSO)
+
+    - Web identity federation:
+        - Amazon, Facebook, Google, OpenID
+
+    - Cross Account Access:
+        - One account can access resources in other accounts
+
+  Federation: combining / joining users from one directory service to another
+        ex. AIM <-> AD
+
+  Identity Broker: Trusted 3rd Party, can use to federate multiple directories
+        ex.: Have directory use Identity Broker to connect two directories
+
+  Identity Store: List of users / directory
+
+  Identities:  users
+
+NOTE: Using STS to get access to S3 from an application
+
+
+              +-------------+
+              |             |                                  +-------------+
+              |             +---------------7----------------> | Amazon S3   |
+              |             |          +------------+          |             |
+              |             |          |            |          +---^-------+-+
+              |             |          |  LDAP      |              |       |
+              |             |          |  Directory |              9       8
+              |             |          |            |          +-----------v--+
++------+      | Enterprise  |          +------^-----+          |              |
+|      |      | Application |                 |                |   AWS IAM    |
+| User +--1--->             |                 3                |              |
+|      |      |             |                 |                +--------------+
++------+      |             |          +------+-----+
+              |             | <--6---+ |            |          +--------------+
+              |             |          |   Identity | <---5----+              |
+              |             |          |   Broker   |          |   AWS STS    |
+              |             | +--2---> |            +-----4--> |              |
+              +-------------+          +------------+          +--------------+
+
+Steps:
+  1. User submits credentials to application
+  2. Application sends credentials to Identity Broker (Trusted 3rd party software)
+  3. Identity Broker validates credentials w/ Directory it is configured to
+  4. Once credentials are validated/ credentials sent to Secure Token Service (STS)
+  5. Once validated STS will issue: Access Key, Secure Access Key, Token and duration
+  6. Identity Broker returns STS credentials back to application
+  7. Application will utilize STS credentials to connect to S3
+  8. S3 will confirm STS credentails against AWS IAM privileges
+  9. IAM confirms back to S3 privileges users has
+
+NOTE: STS service integrates with IAM
+
+STS Service returns:
+  - Access Key
+  - Secret Access Key
+  - Token
+  - Duration (1 - 36 hrs)
+
+
+## Cross Account Access
+########################
+
+Steps to setup Dev Access to Prod (need 2 aws accounts)
+
+## On Dev Account
+1. IAM > Groups > Create New Group >
+              Group Name:  DevGrp
+              Attach Policy:  [X] AdministratorAccess
+              [Create Group]
+
+2. IAM > Users > Create New User >
+              User Name:  John_dev
+              [Create]
+
+3. IAM > Users > John_dev
+              [Security Credentials]
+              [Manage Password]
+              [Assign a customer password]
+              Password:  12345
+              Confirm Password:  12345
+              [Apply]
+
+4. IAM > Users > John_dev  > [Groups]
+              [Add User to Groups]
+              [X] DevGrp
+              [Add to Groups]
+
+NOTE: John created and in DevGrp which has Admin Access
+
+5. Go to Dev Access Account > My Account:
+              Copy Account Id: 998877665544
+
+
+## On Prod Account
+
+6. Prod Account > IAM > Roles >
+              [Create new Role]
+              Role Name: DevAccess
+              [Next]
+              Select Role Type:
+              [x] Role for Cross-Account Access
+              [x] Provide access between AWS accounts you own
+              [Select]
+              Account ID: 998877665544   # NOTE: Copy Dev Account ID from above
+              [Next]
+              Attach Policy:
+              [x] AmazonEC2ReadOnlyAccess
+              [Next]
+              [CreateRole]
+
+
+# NOTE: Need to update Dev Group or User so they can assume new Prod DevAccess Role
+
+7. Copy DevAccess RoleARN: Prod Account > IAM > Roles > DevAccess
+              Copy Role ARN:  arn:aws:iam::1234567876543:role/DevAccess
+
+
+## NOTE: Switch back to Dev Account
+
+8. Dev Account > IAM > Policies >
+              [Create Policy]
+              [Policy Generatory Select]
+              Edit Permissions:
+                  AWS Service: AWS Security Token Service
+                  Actions:     AssumeRole
+                  Amazon Resource Name (ARN):  arn:aws:iam::1234567876543:role/DevAccess
+                  NOTE: pasting DevAccess ARN from Prod Account
+              [Add Statement]
+              [Next]
+              [Create Policy]
+              NOTE: policygen-12345
+
+NOTE:  Attach policy to group or user:
+
+9a. Dev Account > IAM > Users >
+              [x] John_dev
+              [Permissions]
+              [Attach Policy]
+              [x] policygen-12345
+              [Attach Policy]
+
+9b. Dev Account > IAM > Groups >
+              [x] DevGrp
+              [Permissions]
+              [Attach Policy]
+              [x] policygen-12345
+              [Attach Policy]
+
+# NOTE:  Attached policy on a Dev Account Group that has an ARN from Prod Account
+
+# Sign in using John_dev user:
+10. Dev Account > IAM > Dashboard > copy IAM User signin link:
+              IAM users sign-in link: https://998877665544.signing.aws.amazon.com/console
+
+
+11. Sign in as John_dev against account  998877665544
+              Account: 998877665544
+              User Name: John_dev
+              Password: pass
+              [Sign In]
+
+
+# NOTE:  Once signed in as Dev User (John_dev) assume Prod Account Role.
+         Copy access link from Prod Account
+
+12. Prod Account > IAM > Roles > DevAccess:
+              Give this link to users who can
+              switch roles in the console:
+                 https://signin.aws.amazon.com/switchrole?account=112233&roleName=DevAccess
+              [Copy URL]
+
+# NOTE:  Once switch role URL from Prod Account has been copied,
+         from Dev Account past URL into browser
+
+
+13. Paste URL:    https://signin.aws.amazon.com/switchrole?account=112233&roleName=DevAccess
+              Switch Role
+              Account: 112233
+              Role: DevAccess
+              Color: [pink]
+              [Switch Role]
+
+
+# NOTE:  You will now be logged into Prod Account with DevAccess Role
 
 
 .
