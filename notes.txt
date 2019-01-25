@@ -1305,5 +1305,76 @@ Monitoring :
 
 
 
+#############################################################################
+## AWS Security Strategies:  CloudHSM, DDoS and IDS / IPS
+#############################################################################
+
+Note:  CloudHSM = Cloud Hardware Security Module
+       DDoS = Distributed Denial of Service
+       IDS  = Instrusion Detection System
+       IPS  = Instrusion Prevention System
+
+
+## Cloud HSM
+########################
+
+Hardware Security Module (HSM): A physical computing device that safeguards and
+manages digital keys for strong authentication and provides cryptoprocessing.
+
+(Manages digital key and encrypts / decrypts continuously)
+
+- HSMs can be used in any application that uses digial keys
+- Used to protect high value keys
+- HSM Uses:
+    - Onboard secure cryptographic key generation
+    - Onboard secure cryptographic key storage and management
+    - Use of cryptographic and sensitive data material
+    - Offloading application servers for complete asymmetric and symmetric
+      cryptography.
+
+    - HSM are deployed to manage Transparent Data Encryption (TDE) keys for databases
+    - TDE automatically encrypts the data before it is written to the underlying
+      storage device and decrypts when it is read from the storage device
+    - Oracle requires key storage outside of KMS and integrates with CloudHSM
+    - SQL Server requires a key but is managed by RDS after enabling TDE
+
+CloudHSM Overview:
+    - Secure key storage
+    - Contractual and regulatory compliance
+    - On-demand
+    - Reliable and durable storage
+    - Secure connectivity
+    - Improved application performance
+    - Integrated
+    - Auditable
+
+CloudHSM Details:
+    - Single tenant
+    - Deployed within VPC
+    - VPC Peering is supported
+    - Integrates with RDS (SQL and Oralce) and Redshift
+    - EBS volume encryption, S3 Object encryption and key management are
+      supported but require custom scripting
+    - For HA and FT a cluster is required
+    - Monitored via syslog
+
+
+
+## Distributed Denial of Service (DDoS)
+#######################################
+
+Distributed Denial of Service (DDoS): a type of denial of service attack where
+multiple compromised systems are used to target a single system.
+
+
+
+
+
+
+
+
+
+
+
 
 .
