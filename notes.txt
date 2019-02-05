@@ -1366,14 +1366,109 @@ CloudHSM Details:
 Distributed Denial of Service (DDoS): a type of denial of service attack where
 multiple compromised systems are used to target a single system.
 
+   - Reflection Attack: compromised servers overwhelm one server
+   - Slow Loris Attack: packets sent slowly, server trying to handle slow packets
+   - Amplification Attack:  Spoof IP address sends small request packet to
+      service i.e. (DNS, NTP, SSDP, SNMP) and response is amplification of
+      the initial request.   i.e.  64 byte to DNS, 3K response to target server
+
+   - Flood, Reflection & Amplification Attack:  Attacker uses a botnet to
+      send multiple amplifcation requests to DNS, etc. to flood a server.
+
+Mitigation Techniques:
+
+    - Minimize the attack surface, limit DMZ exposure
+    - Scale to absorb the attack
+    - Protect exposed resources (internet facing)
+    - Learn normal behavior (monitor, etc.)
+    - Create a plan for attacks
 
 
+    Minimize the attack surface:
+      - Reduce the number of necessary Internet entry points (minimize DMZ points)
+      - Eliminate non-critical Internet entry points (move to private)
+      - Separate end user traffic from management traffic (utilize bastion or jump server)
+      - Obfuscate necessary Internet entryh point to the level that untrusted
+        end users cannot access them.
+         (i.e. bastion server w/ white-listed IP addresses,  no DNS Names like rdp.example.com )
+      - Decouple Internet entry points to minimize the effects of attacks
+         i.e. remove single point of failure
+
+    Scale to absorb the attack:
+      - Design your infrastructure to scale out and scale up
+        (autoscaling group, increase machine side)
+      - Attackers have to expend more resources to scale up the attack
+      - Attack is spread over a large area (i.e. use Cloudfront)
+      - Scaling buys you time to analyze the attack and respond
+      - Scaling provides you more redundancy
+
+    Protect exposed resources:
+      - CloudFront:  Geo Restriction, whitelist countries that can access
+        and/or blacklist countries that cannot access.
+      - CloudFront: Origin Access Identity (OAI): create a specific users to access AWS resources
+        like S3. Direct access would be denied.
+      - Route53: Alias Record Sets.  Alias can be redirected to a more capable ELB.
+      - Route53: Private DNS.  Internal DNS names not accessible to Internet.
+      - Web Application Firewall (WAF):  Level 7 firewall. Sits in front of EC2 instances
+            WAF available as an Amazon Service
+
+    Create a plan for attacks:
+      - Validate the architecture and select the techniques that work for your
+        infrastructure and application
+      - Evaluate the costs for increased resiliency and understand the goals of your defense
+      - Know who to contact when an attack happens
 
 
+## Reference Architecture
+##########################
 
+                 +----AWS------------------------------------------------------------------------------------------------------------------------+
+                 |                                                                                                                               |
+                 |                             +--VPC-----------------------------------------------------------------------------------------+  |
+                 |                             |                                                                                              |  |
+                 |                             |  +-------------------+                                                                       |  |
+                 |                             |  | +---------------+ |                                                                       |  |
+                 |                             |  | |  +---------+  | |                                                                       |  |
+                 |                             |  | |  | Jump    |  | |                                                                       |  |
++----------------------------------------------------> | Server  |  | |                                                                       |  |
++                |                             |  | |  | EC2     |  | |                                                                       |  |
+[Admin]          |                             |  | |  +---------+  | |    +-------------------------+     +---------------+   +------------+ |  |
+                 |        +-------+            |  | |               | |    |                         |     | +-----------+ |   | +--------+ | |  |
+                 |        |  S3   |            |  | |               | |    |                         |     | |           | |   | |        | | |  |
+                 |        +-------+            |  | |               | |    |   +----------+          |     | |           | |   | |        | | |  |
+                 |            |                |  | |               | |    |   |          |          |     | |           | |   | |        | | |  |
+                 |            |                |  | |               | |    | +---------------------+ |     | | +-------+ | |   | |        | | |  |
+                 |            |                |  | |               | |    | | | +------+ |        | |     | | |       | | |   | |        | | |  |
+                 |            |                |  | |               | |    | | | |      | |  +---+ | |     | | |       | | |   | | +----+ | | |  |
+                 |        +-------------+      |  | |   +--------+  | |    | | | | WAF  | |  |ELB| | |     | | | +---+ | | |   | | |    | | | |  |
+[Users]          |        | CloudFront  |      |  | |   | ELB    |  | |    | | | |      | |  +---+ | |     | | | |   | | | |   | | |MS  | | | |  |
++                |        +-------------+      |  | |   +--------+  | |    | | | +------+ |        | |     | | | |Web| | | |   | | |SQL | | | |  |
+|                |            |                |  | |               | |    | | |          |        | |     | | | |Srv+ | | |   | | |Srvr| | | |  |
+|                |            |                |  | |               | |    | +--------------SecGrp-+ |     | | | +---+ | | |   | | |    | | | |  |
+|                |            |                |  | |               | |    |   |          |          |     | | |  EC2  | | |   | | +----+ | | |  |
+|                |            |                |  | |               | |    |   |          |          |     | | |       | | |   | |        | | |  |
++--------------------------------------------------------------------------------------------------------------------------------->       | | |  |
+                 |            |                |  | |               | |    |   |          |          |     | | +-Cloud-+ | |   | |        | | |  |
+                 |         +-------------+     |  | |   +--------+  | |    |   +-+Auto----+          |     | |    Watch  | |   | |        | | |  |
+                 |         | Route 53    |     |  | |   |  NAT   |  | |    |      Scaling            |     | +-AutoScale-+ |   | +MS-SQL--+ | |  |
+                 |         +-------------+     |  | |   +---+----+  | |    |      Grp                |     |    Grp        |   |  SecGrp    | |  |
+                 |                             |  | |       ^       | |    +-------------------------+     +---------------+   +------------+ |  |
+                 |                             |  | |       |       | |                                                                       |  |
+                 |                             |  | |       |       | |         WAF "sandwich"                  Forward            Backend    |  |
+                 |                             |  | |       |       | |         private subnet                Private Subnet   Private Subnet |  |
+                 |                             |  | |       |       | |                                                                       |  |
+[Internet]       |                             |  | +---Secu|ity Grp+ |                                                                       |  |
++                |                             |  |         |         |                                                                       |  |
+|                |                             |  +------------+DMZ+--+                                                                       |  |
+|                |                             |            |                                                                                 |  |
++-----------------------------------------------------------+                                                                                 |  |
+                 |                             |                                                                                              |  |
+                 |                             +----------------------------------------------------------------------------------------------+  |
+                 +-------------------------------------------------------------------------------------------------------------------------------+
 
+Reference Architecture Notes:
 
-
+  - Public facing servcies: S3, CloudFront, Route 53
 
 
 
