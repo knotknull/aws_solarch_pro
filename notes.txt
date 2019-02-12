@@ -1388,7 +1388,7 @@ Mitigation Techniques:
       - Reduce the number of necessary Internet entry points (minimize DMZ points)
       - Eliminate non-critical Internet entry points (move to private)
       - Separate end user traffic from management traffic (utilize bastion or jump server)
-      - Obfuscate necessary Internet entryh point to the level that untrusted
+      - Obfuscate necessary Internet entry point to the level that untrusted
         end users cannot access them.
          (i.e. bastion server w/ white-listed IP addresses,  no DNS Names like rdp.example.com )
       - Decouple Internet entry points to minimize the effects of attacks
@@ -1470,7 +1470,7 @@ Reference Architecture Notes:
 
   - Public facing servcies: S3, CloudFront, Route 53
   - Admin traffic separate from users separate from internet
-  - NAT handles Internet traffice that doesn't need an IP address
+  - NAT handles Internet traffic that doesn't need an IP address
   - Users traffic goes thru CloudFront, ELB, AutoScaling group, WAF, ELB, Web Server, AutoScaling, MS SQL
   - Management traffic goes to Jump Server, then to EC2 instances
     (No CNAME, DNS for Jump Server!!!)
@@ -1543,7 +1543,41 @@ Agents sends logs to IDS / IPS to S3 buckets
 
 AWS Best Practices for DDoS Resiliency:
 
-https://d0.awsstatic.com/whitepapers/DDoS_White_Paper_June2015.pdf 
+https://d0.awsstatic.com/whitepapers/DDoS_White_Paper_June2015.pdf
+
+
+
+#############################################################################
+## Managing Billing Strategies :  EC2 Standard and Reserved Instances
+#############################################################################
+
+
+## EC2 Instance Types
+##########################################
+  - On-Demand  (highest cost)
+
+  - Reserved (standard) - purchasing a reserved instance for a server
+                          lower hourly rate for a time commitment (1yr etc.)
+
+  - Reserved (scheduled)- purchase reserved instance during a specific schedule
+                          i.e. end of month / end of quarter
+
+  - Spot    - can bid on excess instances (hourly rate $1 hr vs $0.05)
+              a higher bid can cause you to lose instances immediately
+
+  - Dedicated (host)     - AWS dedicates a specific physical host
+                         i.e. bring your own licenses / regulatory compliance
+                         higher than On-Demand / Reserved or Spot
+
+  - Dedicated (instance) - Dedicate type of server, don't get a specified physical host
+
+
+
+## EC2 Instances In Depth
+##########################################
+
+
+
 
 
 
