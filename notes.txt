@@ -1576,6 +1576,50 @@ https://d0.awsstatic.com/whitepapers/DDoS_White_Paper_June2015.pdf
 ## EC2 Instances In Depth
 ##########################################
 
+On-demand:
+  - Low cost and flexibility with no up front cost
+  - Ideal for autoscaling groups and unpredictable workloads
+  - Dev / Test (can throttle up/down when needed)
+
+
+Reserved Instances:
+  - Steady state and predictable usage
+  - Applications that need reserved capacity
+  - Upfront payments reduce hourly rate
+  - Can have no / some / all upfront costs
+  - Scheduled Reserver instances match your capacity reservation to a
+    predictable recurring schedule
+
+Spot:
+  - Flexible start and end times
+  - Grid Computing and HPC
+  - Very low hourly compute cost
+
+Dedicated:
+  - Predictable performance
+  - Complete isolation
+  - Most expensive
+
+## EC2 Instance Family
+#######################
+
+Family                  generation    Smallest      Largest
+General Purpose (GP)      t2          t2.micro      t2.large
+General Purpose (GP)      m3          m4.large      m4.10xlarge
+General Purpose (GP)      m5          m3.medium     m3.2xlarge
+Compute Optimized         c4          c4.large      c4.8xlarge
+Compute Optimized         c3          c3.large      c3.8xlarge
+Memory Optimized          r3          r3.large      r3.8xlarge
+Storage Optimized         i2          i2.xlarge     i2.8xlarge
+Storage Optimized         d2          d2.2xlarge    d2.8xlarge
+GPU                       g2          g2.2xlarge    g2.8xlarge
+
+NOTE: M4 share same processor
+      M3 share same processor
+
+
+## Standard Reserved Instances Attributes
+###########################################
 
 
 
