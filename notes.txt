@@ -1692,6 +1692,137 @@ NOTE:  Any changes to these attributes changes from RI to on-demand.
 ## Managing Billing Strategies :  Consolidated Billing and Resource Groups
 #############################################################################
 
+                     +-------+            +------------------+
+             +-----> | PROD  |            |                  |
++----------+ |       +-------+            |   Monthly        |
+|          | |                            |   Bill           |
+|  Paying  | |       +-------+            |                  |
+|          | +-----> | Test  |  +-------> |  Prod   $100     |
+|  Account | |       +-------+            |  Test    $50     |
+|          | |                            |  Dev    $250     |
++----------+ |       +-------+            |                  |
+             +-----> |  Dev  |            |  --------------  |
+                     +-------+            |  Total  $400     |
+                                          |                  |
+                                          +------------------+
+
+Can link one paying account to several environment accounts and get consolidated
+billing across accounts.
+
+Advantages:
+    - consolidated bills
+    - paying accounts and linked accounts are independent and cannot access
+      resources in other accounts
+    - 20 linked accounts limit (can increase by contacing AWS)
+    - Volume discounts (licensing)
+
+
+Volume Discount example:
+                        Standard
+First 1 TB / month      $0.0300 / GB
+Next 49 TB / month      $0.0295 / GB
+
+
+Dev     750 GB    $22.5
+Test    750 GB    $19.5
+Prod   2500 GB    $72.25
+LOB    3500 GB    $103.75
+Total Storage 7.4 TB
+Total Monthly without consolidated billing    $220
+Total Monthly with    consolidated billing    $218.8
+
+NOTE: Consolidated allows to hit tier discounts across accounts.
+
+
+
+
+Volume discount example #2
+  EC2 Family      Type                     Per Hr
+  m4.Large        On-demand hourly          $0.246
+  m4.Large        1 yr reserved instance    $0.184
+
+
+Dev  - 3 on-demand instances                 $6464
+Test - 2 on-demand instances                 $4309
+Prod - 6 RI but only using 3 RI              $9671
+LOB  - 10 RI but only using 8 Ri            $16118
+---------------------------------------------------
+Total yearly bill independent               $36562
+
+Unused RIs = 5  ( if apply unused RIs across dev and test)
+---------------------------------------------------
+Total yearly bill with consolidated billing  $25789
+
+
+## Paying Account
+###########################################
+
+Best Practices:
+    - Use complex passwords
+    - Use MFA
+    - Do not deploy resources in paying account
+    - Enable monitoring (billing alerts) on paying account consolidates
+      billing data for all linked accounts.
+    - You can still create billing alerts per account
+
+
+## CloudTrail
+###########################################
+
+Enabled per account per region
+
+You can consolidate all logs into a single S3 bucket:
+  - Turn on CloudTrail in paying account
+  - Create an S3 bucket policy that allows cross account access
+  - Turn on CloudTrail in all other accounts
+  - Configure all accounts to store logs in the paying account S3 bucket
+
+
+## Resource Groups
+###########################################
+
+A resource group is a collection of resources that share one ore more tags or
+portions of tags, and can be managed as a single group rather man move from
+one AWS Service to another for each task.
+
+  - Use a single page to view and manage your resources
+  - Combines information about multiple resources, such as metrics, alarms and
+    configuration details.
+  - Create a custom console that organizes and consolidates the information you
+    need based on your project and the resources you use.
+  - Quickly identify resources that are not tagged
+  - Can be shared among users in the same AWS account by sharing a URL
+  - Users of the same AWS account can have different resource groups
+
+
+Create resource group:
+
+AWS > Create a Resource Group
+[Create a Group]
+
+Group Name:
+Tags:
+Regions:
+Resource types:
+                        [Save]
+
+NOTE: To find untagged resources:  AWS > Tag Editor
+Regions:
+Resource Types:
+Tags :
+                        [find resources]
+[Create a new tag key ]
+
+
+
+#############################################################################
+## Understanding CloudFormation, Elastic Beanstalk and OpsWorks
+#############################################################################
+
+
+
+
+
 
 
 
