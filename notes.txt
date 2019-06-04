@@ -1819,9 +1819,47 @@ Tags :
 ## Understanding CloudFormation, Elastic Beanstalk and OpsWorks
 #############################################################################
 
+## CloudFormation
+###########################################
+
+Create and manage AWS resources.  Provision in an orderly/predictable fashion.
+Supported Services:
+
+  - VPC                            - CloudFront
+  - Auto Scaling                   - CloudTrail
+  - EC2                            - Elastic Beanstalk
+  - IAM                            - Simple Notification Service (SNS)
+  - Route 53                       - Simple Queue Service (SQS)
+  - S3                             - Amazon Kinesis
+  - CloudWatch                     - AWS OpsWorks
+  - RDS                            - Redshift
+  - DynamoDB                       - SimpleDB
+
+Made of Templates and Stacks
+
+    Templates
+    ---------
+  - Templates are architectural designs
+  - Can create, update, delete templates
+  - CloudFormation templates written in JSON
+
+    Stacks
+    ------
+  - Stacks are deployed resources
+  - Can create, update, delete stacks using templates
+
+Templates:
+  - Don't need to figure out the order for provisioning AWS services
+  - Don't need to make dependencies work
+  - Modify and updates templates in a controlled / predictable way
+      - applying version control
+  - Visualize template with AWS CloudFormation Designer (drag/drop)
 
 
-
+Deploy Stacks:
+  - AWS Management Console
+  - CLI
+  - API
 
 
 
