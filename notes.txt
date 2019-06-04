@@ -1862,6 +1862,56 @@ Deploy Stacks:
   - API
 
 
+## Template Elements
+
+Mandatory:  file format and version
+            list of resources and associated config values
+
+Optional:   Template Parameters (limit of 60)
+            Output values (limit of 60)
+            List of data tables (static values: ami names, etc.)
+
+# Intrinsic Functions
+  Provides several built-in functions to manage stacks
+    - Assign values to properties that are not available until runtime
+          i.e.  IP Address, DNS Name
+
+Sample Functions:
+    - Fn::Base64
+    - Condition Functions
+    - Fn::FindInMap
+    - Fn::GetAtt
+    - Fn::GetAZs
+    - Fn::Join
+    - Fn::Select
+    - Ref
+
+Example:  Fn::GetAtt
+  "Fn::GetAtt" : [ "logicalNameofResources", "attributeName"]
+  ex.  "Fn::GetAtt" : [ "ELB", "DNSName"]
+
+Resources:
+http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/intrinsic-function-reference.html
+Fn::GetAtt:
+http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/intrinsic-function-reference-getatt.html
+
+Need to know:
+  - Puppet and Chef integration supported
+  - Bootstrap scripts
+  - Define deletion policies
+  - Provides WaitCondition
+  - Create IAM Roles
+  - Create / customize VPC
+  - VPC peering in same AWS account
+  - Route 53 Supported
+
+Stack Creation Errors:
+  - Automatic rollback on error is enabled by default
+  - Charged for resources provisioned even if there is a error / rollback
+  - CloudFormation is free / resources charged for
+
+
+
 
 
 
