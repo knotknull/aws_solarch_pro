@@ -1912,7 +1912,58 @@ Stack Creation Errors:
 
 
 
+## ElasticBeanstalk
+###########################################
+
+Service to deploy web apps and services.  Upload code and deployment,
+provisioning, load balancing, auto-scaling and health monitoring done
+automatically.
+
+  - integrates with VPS
+  - integrates with IAM
+  - provision RDS instances
+  - full control of resources
+  - code stored in S3
+  - multiple environments supported for versioning
+  - changes from git repos replicated
+  - linux and windows ami supported
+
+Deployment:
+  - deploy code using a war file or git repo
+  - Used AWS toolkit for Visual Studio / Eclipse to deploy
+  - fault tolerant within a single region (not between regions)
+  - apps are publicly available by default
+
+Management:
+  - CloudWatch monitoring
+  - Adjust app server settings
+  - Run other app components (i.e. cache)
+  - Access log files without logging into app servers
+
+CloudFormation vs. Elastic Beanstalk:
+  - CloudFormation supports Elastic Beanstalk
+  - Elastic Beanstalk does not provision CloudFormation templates
+  - ideal for devs w/ limited cloud experience that need fast deployments
+  - ideal for standard PHP, Java, Python, Ruby, Node.js, .NET, Go or Docker
 
 
+## AWS OpsWorks
+###########################################
 
-.
+Config management service that helps you automate ops tasks:
+  - software configs
+  - package installs
+  - db setups
+  - server scaling
+  - code deployment using chef
+
+Entire platform based on Chef
+
+OpsWorks Components:
+  - Use AWS Console
+  - Consists of 2 elements: Stacks, Layers
+  - Stacks: containers of resources (EC2, RDS, ELB) you manage collectively
+  - Every stack contains 1 or more layers:
+      - Web app layer
+      - DB layer
+  - Layers automate deployment of packages
