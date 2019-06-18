@@ -1967,3 +1967,191 @@ OpsWorks Components:
       - Web app layer
       - DB layer
   - Layers automate deployment of packages
+
+
+
+#############################################################################
+## CloudFront, Kinesis Streams & SNS Mobile Push Notifications
+#############################################################################
+
+## CloudFront
+###########################################
+
+Global Content Delivery Network (CDN) service:
+ - distribute content to end users
+    low latentcy , high data transfer
+
+Global network of edge locations
+  - dynamic / static / streaming / interactive
+  - automatically routed to nearest edge location
+  - Optimized to work with
+    - S3
+    - EC2
+    - ELB
+    - Route 53
+
+Distriubtion Types:
+  - Web Distributions
+  - RTMP Distributions (streaming)
+
+Geo Restriction:
+  - Whitelist / blacklist countries
+  - blacklisted countries see 403 error
+  - Custom error pages
+  - console or api
+
+HTTP methods:
+  - GET / PUT / POST / PATCH / DELETE / OPTIONS
+    Does not cache responses for PUT, POST, PATCH, DELETE
+    GET is cached
+
+Zone Apex: Route 53 Alias record mapping to CloudFront distribution
+
+Wildcard CNAME: support subdomains
+
+SSL:
+  - Supports wildcard SSL certificates
+  - Dedicated IP Custom SSL
+  - SNI (Server Name Indication) Custom SSL
+      - Server can present multiple certs from same IP address
+
+
+Invalidation:
+  - Delete and let it propogate
+  - Use invalidation API
+
+Edge Caching:
+  - Dynamic content supported
+
+
+
+## ElastiCache
+###########################################
+
+Open-source in-memory caching engine
+
+  - Memcached
+    - widely adopted memory object caching system
+
+  - Redis
+    - Popular open-source in-memory key-value store
+    - Supports data structures such as sorted sets / lists
+
+Master / Slave replication and Multi-AZ
+  - can be used to achieve cross AZ redundancy
+
+
+
+Memcached vs. Redis
+                                Memcached             Redis
+Cache to offload DB                 Y                   Y
+Multithreaded performance           Y                   N
+Horizontal scaling                  Y                   N
+Multi-AZ                            N                   Y
+Backup and restore                  N                   Y
+Pub / sub functionality             N                   Y
+sorting and raking                  N                   Y
+Advanced data types                 N                   Y
+Persistence                         N                   Y
+
+
+Performance at Scale with Amazon ElastiCache:
+https://d0.awsstatic.com/whitepapers/performance-at-scale-with-amazon-elasticache.pdf
+
+
+
+## Kinesis Streams
+###########################################
+
+Build apps that process / analyze streaming data.  Continuously
+capture and store TB / hr from thousands of sources:  click streams,
+financial transactions, social media feeds, IT logs, location tracking.
+
+
++---------------+     +------------------------------------------------+   +------------+
+|               |     |                                                |   |            |
+|  +--------+   |     |   +-----------------------------------+        |   |            |
+|  |  ECS   | +-------------->                                |        |   |  +------+  |  +---------+
+|  +--------+   |     |   |       +----------------+          |        |   |  | EC2  | +-> |         |
+|               |     |   |       |  Shard  1      |         +--------------> +------+  |  |   S3    |
+|               |     |   |       +----------------+          |        |   |            |  +---------+
+|  +--------+   |     |   |                                   |        |   |            |
+|  | client |  +--------------->  +----------------+          |        |   |  +------+  |  +----------+
+|  +--------+   |     |   |       |  Shard  2      |          +-------------->+ EC2  | +-->+  Dynamo  |
+|               |     |   |       +----------------+          |        |   |  +------+  |  |  DB      |
+|               |     |   |                                   |        |   |            |  +----------+
+|  +--------+   |     |   |       +----------------+          |        |   |            |
+|  | mobile | +---------------->  |  Shard  .....  |         +--------------> +------+  |  +----------+
+|  +--------+   |     |   |       +----------------+          |        |   |  | EC2  +---->+ Amazon   |
+|               |     |   |                                   |        |   |  +------+  |  | Redshift |
+|               |     |   |       +----------------+          |        |   |            |  +----------+
+|  +--------+   |     |   |       |  Shard  N      |          |        |   |  +------+  |
+|  | server | +---------------->  +----------------+          +-------------> | EC2  |  |  +----------+
+|  +--------+   |     |   |                                   |        |   |  +------+ +-->+ Amazon   |
+|               |     |   |                                   |        |   |            |  | EMR      |
+|               |     |   |                                   |        |   |            |  +----------+
+|               |     |   +-----------------------------------+        |   |            |
+|  [Producers]  |     |  Kinesis Stream                                |   |[Consumers] |
++---------------+     +------------------------------------------------+   +------------+
+
+
+Data stored by default for 24 hours
+  - can be increased to 7 days
+
+Terminology
+
+Producers   Data Records        Shards    Consumers
+            Sequence Number
+            Partition Key
+            Data blob
+
+
+Producers:
+  - Amazon Kinesis Streams API
+  - Amazon Kinesis Producer Library (KPL)
+  - Amazon Kinesis Agent
+
+Shards:
+  - uniquely identified group of data records in a stream
+  - stream is composed of one ore more shards, each w/ fixed unit of capacity
+    - support 5 transactions per second for reads
+      - max total data read rate of 2MB / sec
+    - Up to 1000 records/sec for writes
+      - max total data write rate of 1MB / sec
+        (including partition keys)
+
+Data rate increases ==>  add more shards to increase stream size
+Data rate decreases ==>  remove shards
+
+
+
+## Partition Keys
+  - Used to group data by shard within a stream
+  - Stream service segregates data records belonging to a stream into multiple shards
+  - User partition key of data record to determine which shard data record belongs to
+  - Specified by app putting data into a stream
+
+## Sequence Number
+  - Each data record has a unique sequence number
+  - Assigned by Streams after you write to the stream w/
+    client.putRecords or client.putRecord
+
+## Data Blobs
+  - data your producer adds to a stream.  The maximum size of a data BLOB
+    is 1 MB (after payload is base64 decoded)
+
+
+## Consumers
+  - Consumers get records from Amazon Kinesis Streams and process.
+    Consumers known as Amazon Kinesis Streams Applications.
+
+
+
+## Kinesis Streams
+###########################################
+
+
+
+
+
+  .
