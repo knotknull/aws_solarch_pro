@@ -2147,8 +2147,37 @@ Data rate decreases ==>  remove shards
 
 
 
-## Kinesis Streams
+## SNS Mobile Push Notifications
 ###########################################
+Ability to send push notifications messages directly
+to apps on mobile devices
+                                         +------------------+
+                        +------------+   |                  |
++--------------+        |            |   |     ADM          |
+|              |        |  Amazon    |   |     APNS         |   +------------+
+|  Publisher   | +----> |  SNS       +-+>+     Baidu        |   |            |
+|              |        |            | | |     GCM          |   |            |
++--------------+        |            | | |     MPNS         +-->+ Subscriber |
+                        +------------+ | |     WNS          |   |  mobile    |
+                                       | |                  |   |            |
+                                       | | Push Notification|   +------------+
+                                       | | Services         |
+                                       | +------------------+
+                                       |
+                Subscriber             v
+               +-----------------------+--------+
+               | [SMS] [Email]  [HTTP/S]  [SQS] |
+               +--------------------------------+
+
+Supported Push Notification Services:
+  - Amazon Device Messaging (ADM)
+  - Apple Push Notification Service (APNS) iOS / Mac OS X
+  - Baidu Cloud Push (Baidu)
+  - Google Cloud Messaging for Android (GCM)
+  - Microsoft Push Notification Service for Windows Phone (MPNS)
+  - Windows Push Notification Service (WNS)
+
+
 
 
 
