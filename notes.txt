@@ -2181,6 +2181,227 @@ Supported Push Notification Services:
 
 
 
+#############################################################################
+## Understanding AWS High Availabiilty and BC/DR Options
+#############################################################################
+
+## RTO and RPO
+###########################################
+
+
+## RTO: Recovery Time Objective
+
+The time it takes after a disruption to restore a business process to its
+Service Level, as defined by the Operational Level Agreement.
+
+ex.  disaster at 12:00 PM and RTO is 8 hours, DR process should restore the
+     business process to the acceptable service level by 8:00 PM
+
+
+## RPO: Recovery Point Objective
+
+The acceptable amount of data loss measured in time.
+
+ex.  disaster at 12:00 PM and RPO is one hour, system should recover all data
+     that was in the system before 11:00 AM.  Data loss will span only one hour,
+     between 11:00 AM and 12:00 PM
+
+(Tolerance for data loss)
+
+## Traditional DR
+  - Different levels of off-site duplication of data and infrastructure
+
+  - Critical business services are setup and maintained on this infrastructure
+    and tested at regular intervals
+
+  - DR environment's location and the production infrastructure should be a
+    significant physical distance apart.
+
+## Traditional DR Investments
+  - Facilities (power and cooling)
+  - Physical Security
+  - Suitable capacity
+  - Support for repairing / replacing / refreshing infrastructure
+  - Internet Service Provider to provide Internet connectivity
+  - Network infrastructure
+  - Server capacity
+  - Storage
+
+
+## AWS for DR
+  - Minimum hardware required for data replication
+  - Pay as you use model
+  - Scalability
+  - Automate DR deployment
+
+
+## AWS Services for DR
+  - Regions:  multiple regions around the globe
+  - Storage:
+          - Amazon S3
+          - Glacier
+          - EBS
+          - Direct Connect
+          - Storage Gateway
+  - EC2:
+          - Amazon EC2
+          - EC2 VM Import Connector
+  - Networking:
+          - Route 53
+          - ELB
+          - VPC
+          - Direct Connect
+  - Databases:
+          - RDS
+          - DynamoDB
+          - Redshift
+  - Deployment and Orchestration:
+          - CloudFormation
+          - Elastic Beanstalk
+          - OpsWorks
+  - Security and Compliance:  Well documented security best practices
+
+
+
+## DR Scenarios
+###########################################
+
+  - Backup & restore
+  - Pilot light (Some resources in AWS)
+  - Warm standby: connection from prod to AWS but few services
+  - Multi Site:  Active / Active on prem <-> AWS
+
+
+
+## Backup and recovery
+
++--------------------+                        +-------------------+
+|        [Storage]   |       [Direct ]        |  AWS              |
+|        [Gateway]  +------> [Connect]        |                   |
+|                    |  |         +           |     [------]      |
+|                    |  |         +------------->   [  S3  ]      |
+|                    |  |                     |     [------]      |
+| Corporate    +     |  =---> [Internet] +------------^^          |
+| Data Center  ++----------->                 |        |   ^      |
+|               |    |                   +--------------   |      |
+|               |    |                   |    |            |      |
+|               |    |                   |    |            |      |
+|               |    |                   |    | +----------+----+ |
+|               |    |        [Import]+--++   | |               | |
+|               +-----------> [Export]        | |   EC2         | |
+| On-site            |                        | |           AZ  | |
+| Infrastructure     |                        | +---------------+ |
++--------------------+                        +-------------------+
+
+
+## Pilot Light
+
+
++------------------------------+       www.xyz.com           +--------------------------------+
+|                +-------------------->        |             |                        AWS     |
+|                |             |            +--v--------+    |(active)                        |
+|                |             |            | Route 53  +-------------->  +------------+      |
+|                |             |            +-----------+    |            |   ELB      |      |
+|                |             |                             |            +-+----+-----+      |
+|                |             |                             |              |    |            |
+|                |             |                             |              v    v            |
+|          [-----+----]        |                             |        +-----+----+----+       |
+|          [  Reverse ]        |                             |        | Reverse Proxy |       |
+|          [  Proxy   ]        |                             |        | Caching Server| +----------->|
+|          [----+-----]        |                             |        |               |       |      |
+|               ^              |                             |        +---------------+       |      | Not
+|               |              |                             |                |               |      | Running
+|         [-----+-----]        |                             |        +---------------+       |      |
+|         [ App Server]        |                             |        |  Application  |       |      |
+|         [-----+-----]        |                             |        |  Server       +------------->|
+|               ^              |                             |        +---------------+       |
+|               |              |                             |                ^               |
+|         [-----+-----]        |                             |                |               |
+|         [ DB Master ]        |                             |                v               |
+|         [-----------] +      |     Data Mirroring /        |        +----------------+      |
+|                       +------------------------------------------>  |    Data        |      |
+|  Corporate data sever        |     Replication             |        |    Volume      |      |
++------------------------------+                             |        +----------------+      |
+                                                             +--------------------------------+
+
+                                                                          Scaled Up For Production
+
+## Warm Stand By
+
++------------------------------+       www.xyz.com           +--------------------------------+
+|                +-------------------->        |             |                        AWS     |
+|                |    (active) |            +--v--------+    |(not active)                    |
+|                |             |            | Route 53  +-------------->  +------------+      |
+|                |             |            +-----------+    |            |   ELB      |      |
+|                |             |                             |            +-+----+-----+      |
+|                |             |                             |              |    |            |
+|                |             |                             |              v    v            |
+|          [-----+----]        |                             |        +-----+----+----+       |
+|          [  Reverse ]        |                             |        | Reverse Proxy |       |
+|          [  Proxy   ]        |                             |        | Caching Server|       |
+|          [----+-----]        |                             |        |               |       |
+|               ^              |                             |        +---------------+       |
+|               |              |                             |                |               |
+|         [-----+-----] ------------------------             |        +---------------+       |
+|         [ App Server]        |               |             |        |  Application  |       |
+|         [-----+-----]        |      |------------------------------ |  Server       |       |
+|               ^              |      |        |             |        +---------------+       |
+|               |              |      |        |             |                ^               |
+|         [-----+-----] <------|-------        |             |                |               |
+|         [ DB Master ]        |               |------------------|           v               |
+|         [-----------] +      |                             |    ->  +----------------+      |
+|                       +------------------------------------------>  |    Data        |      |
+|  Corporate data sever        |     Data Mirroring /        |        |    Volume      |      |
++------------------------------+     Replication             |        +----------------+      |
+                                                             +--------------------------------+
+
+                                                                          Scaled Up for Produciton
+Note:  Connection to AWS NOT Active
+
+
+
+
+## Multi Stite
+
++------------------------------+       www.xyz.com           +--------------------------------+
+|                +-------------------->        |             |                        AWS     |
+|                |    (active) |            +--v--------+    |(active)                       |
+|                |             |            | Route 53  +-------------->  +------------+      |
+|                |             |            +-----------+    |            |   ELB      |      |
+|                |             |                             |            +-+----+-----+      |
+|                |             |                             |              |    |            |
+|                |             |                             |              v    v            |
+|          [-----+----]        |                             |        +-----+----+----+       |
+|          [  Reverse ]        |                             |        | Reverse Proxy |       |
+|          [  Proxy   ]        |                             |        | Caching Server|       |
+|          [----+-----]        |                             |        |               |       |
+|               ^              |                             |        +---------------+       |
+|               |              |                             |                |               |
+|         [-----+-----] ------------------------             |        +---------------+       |
+|         [ App Server]        |               |             |        |  Application  |       |
+|         [-----+-----]        |      |------------------------------ |  Server       |       |
+|               ^              |      |        |             |        +---------------+       |
+|               |              |      |        |             |                ^               |
+|         [-----+-----] <------|-------        |             |                |               |
+|         [ DB Master ]        |               |------------------|           v               |
+|         [-----------] +      |                             |    ->  +----------------+      |
+|                       +------------------------------------------>  |    Data        |      |
+|  Corporate data sever        |     Data Mirroring /        |        |    Volume      |      |
++------------------------------+     Replication             |        +----------------+      |
+                                                             +--------------------------------+
+
+                                                                          Scaled Up for Produciton
+
+Note:  Like Warm Standby but connection to AWS is active
+
+
+Using Amazon Web Services for Disaster Recovery:
+http://d1.awsstatic.com/whitepapers/aws-disaster-recovery.pdf 
+
+
+
+
+
 
 
   .
