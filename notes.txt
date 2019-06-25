@@ -2396,8 +2396,206 @@ Note:  Like Warm Standby but connection to AWS is active
 
 
 Using Amazon Web Services for Disaster Recovery:
-http://d1.awsstatic.com/whitepapers/aws-disaster-recovery.pdf 
+http://d1.awsstatic.com/whitepapers/aws-disaster-recovery.pdf
 
+
+
+
+## Import / Export
+####################
+
+Shipping a storage array to AWS and load onto S3. Useful for
+  - low bandwidth
+  - large data sets
+  - Can be used to import to:
+      - S3
+      - Glacier
+      - EBS
+
+
+Can only export from:
+  - S3
+  - if bucket versioning is enabled only most recent version exported
+
+## Encryption, Wiping & Destruction
+
+  - Encryption is optional when sending
+  - By default AWS will encrypt all data it exports using TrueCrypt
+  - AWS will wipe the device after downloading the data
+  - AWS will not destroy the device
+
+## HA for databases
+
+Oracle:  Oracle data guard
+         Oracle RAC
+
+SQL Server:  Always on availablity groups
+             SQL mirroring
+
+MySQL :  Asynchronous replication
+
+
+## Automatic RDS Multi-AZ Failover
+
+Failover happens when:
+  - Loss of availability in primary AZ
+  - Loss of connectivity to primary DB
+  - Storage or host failure to primary DB
+  - Software patching or rebooting of primary DB
+
+
+## Automated Backups
+####################
+
+Services with automated backups:
+  - RDS
+  - Redshift
+  - ElastiCache (Redis Only)
+
+Services without automated backups:
+  - EC2
+
+## RDS Automated Backups:
+    - All backups stored on S3
+    - MySQL DB engine, only the InnoDB storage engine is supported
+    - MariaDB DB engine, only the XtraDB storage engine is supported
+    - Deleting a DB instance deletes all automated backups
+    - Manual snapshots are not deleted
+    - RDS uses default retention period of 1 day
+    - Values are 0 (no backup) to max of 35 days
+    - Manual snapshot limits (50 per region)
+          - Does not apply to automated backups
+    - Restore allows you to change the engine type
+          - (SQL Standard to SQL Enterprise)
+
+## EC2 Backup Overview
+    - No automated backups
+    - Automated backups using CLI or Python
+    - Snapshots stored in S3
+    - Snapshots re incremental.  Charge for incremental space
+    - Each snapshot still contains base snapshot data
+        - Can restore from any snapshot in the chain
+        - Do not have a reliance on the primary (first) snapshot
+
+
+#############################################################################
+## AWS Data Pipeline and Integration with VMWare
+#############################################################################
+
+## AWS Data Pipeline
+####################
+
+Web service that processes and moves data between different AWS compute and
+storage services as well as on-premises data sources at specified intervals.
+
+
+## Create, access and manage using:
+  - AWS Management Console
+  - CLI
+  - SDK
+  - Query API
+
+## Supported compute services:
+  - EC2
+  - EMR
+
+## Supported services to store data:
+  - DynamoDB
+  - RDS
+  - Redshift
+
+## Key Concepts
+  - Task runners
+  - Data nodes
+  - Activities
+  - Preconditions
+  - Actions
+
+## Data Pipeline
+  - container that groups Data nodes, Activities, Preconditions and schedules.
+  - Provisions and terminates resources automatically
+
+## Task Runner
+  - Application that polls Data Pipeline for tasks to execute
+
+  - Can be installed automatically on resources launched / managed by
+    AWS Data Pipline
+
+  - Can be manually installed on compute resources, i.e. long running EC2
+    instance or an on-premise server
+
+## Data nodes
+  - Defines the location and type of data that a pipeline activity uses as
+    input or output
+    i.e.:
+        - DynamoDB table that contains data for HiveActivity or EMRActivity to use
+        - MySQL table and database query that represents data for a pipeline
+          activity to user
+        - An Amazon Redshift table that contains data for RedshiftCopyActivity to use
+        - An S3 location that contains one or more files for a pipeline activity to use
+
+## Activities
+  - A pipeline component that defines the work to perform
+        i.e. execute stored procedure or database dumps
+
+  - AWS Data Pipeline provides pre-packaged activities such as moving data
+    from one location to another or running queries
+
+  - Custom scripts supported
+
+## Supported Activities Types
+  - Copy data from one location to another
+  - Run an Amazon EMR cluster
+  - Run a Hive query or a Pig script on an EMR cluster
+  - Copy data to and from Redshift tables
+  - Run a customer Unix / Linux shell command as an activity
+  - Run a SQL query on a database
+
+
+## Preconditions
+  - Pipeline component containing conditional statements that must be true
+    before an activity can run
+
+  - Support for pre-packaged preconditions and custom scripts
+
+  - Two types fo preconditions:
+      - System-managed preconditions
+      - User-managed preconditions
+
+## Actions
+  - Steps that a pipeline component takes when certain events occur: success,
+    failure, late activities
+
+  - Following actions are supported:
+      - An action that sends an Amazon SNS notification to a topic based on
+        certain events
+      - An action that triggers the cancellation of a pending or unfinished
+        activity, resource or data node
+
+    NOTE: AWS Data Pipeline relies on Amazon SNS notification as the primary way
+          to indicate the status of pipelines and their components.
+
+
+## Scheduling pipeline
+  Scheduling functionality thru Scheduled pipeline component.
+  (Scheduing services that supports Data Pipelines)
+
+
+
+## Integration with VMware
+############################
+
+  - AWS Management Portal for vCenter enables you to manage your AWS
+    resources using VMware vCenter
+  - Installs as a vCenter plug-in
+  - Migrate VMware VMs to Amazon EC2
+  - Manage AWS resources from within vCenter
+
+  Use cases:
+  - Self-service AWS Portal within vCenter
+  - Migrate VMware VMs to Amazon EC2
+  - Leverage vCenter experience while getting started w/ AWS
+  - Reach new geographies from vCenter
 
 
 
